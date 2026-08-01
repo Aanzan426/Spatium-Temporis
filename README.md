@@ -8,6 +8,10 @@ Not a task manager. A place to put a mind in front of its own eyes.
 **Design and rationale: [`docs/DESIGN.md`](docs/DESIGN.md).** Read it before touching
 anything. It is a living document — when the plan changes, it changes.
 
+**Work log: [`docs/documentation/`](docs/documentation/).** One dated file per working day —
+what happened, why, what was reversed, and explanations of anything new. `DESIGN.md` holds
+the current state and loses history; the log keeps it.
+
 ## Status
 
 **Phase 1**, two pages: the main timeline and the scheduler. Scope and deliberate

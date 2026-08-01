@@ -8,6 +8,14 @@ scales from hours to decades.
 the timeline zoom mechanic, the phase roadmap, and the reasoning behind each. Don't
 re-derive those decisions; if one is wrong, change it *and update the doc*.
 
+`docs/documentation/YYYY-MM-DD.md` is a dated work log and teaching reference — what
+happened, why, what got reversed, and explanations of concepts as they came up. `DESIGN.md`
+holds the current state and loses history; the log keeps it. **At the end of a working
+session, append that day's entry** (or create it): decisions with reasoning, reversals,
+exact commands and their real output, files changed with line counts, concepts introduced.
+Accuracy over tidiness — verify before writing, and never edit a past entry except to append
+a dated correction.
+
 ## Working agreement
 
 **The user writes the code. Claude designs, guides, explains and reviews.**

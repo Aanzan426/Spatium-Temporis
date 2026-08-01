@@ -1,0 +1,51 @@
+# Documentation — work log and teaching reference
+
+Two kinds of file:
+
+- **`YYYY-MM-DD.md`** — one per working day. What happened, when, why. Never rewritten.
+- **`reference/*.md`** — standing teaching documents on one topic. Updated as understanding
+  grows, unlike the dated entries.
+
+This is not the design doc. `docs/DESIGN.md` says what the system **is right now** and gets
+rewritten whenever the plan turns. These files say **what happened, when, and why** — and
+they are never rewritten. If a decision here was later reversed, the entry stays as written
+and the reversal is recorded in the later entry.
+
+That distinction is the whole point. `DESIGN.md` loses history by design; this folder keeps
+it. Between them you can always answer "why is it like this?" and "what did I think before?"
+
+## What each entry contains
+
+- **State at start / state at end** — commits, what was tracked, what ran
+- **Decisions made**, each with the reasoning and what it replaced
+- **Decisions reversed** — the most valuable section. Record what was wrong and why
+- **Exact commands run and their real output** — not summaries
+- **Files created or changed**, with line counts
+- **Concepts** — a teaching section explaining anything new that came up, properly, not as
+  a glossary stub
+- **Open questions** and **the next concrete step**
+
+## Rules
+
+1. **Accuracy over tidiness.** Verify before writing. If something wasn't checked, say it
+   wasn't checked rather than assuming.
+2. **No generalizations.** "Set up the project" is useless in four months. "npm install
+   added 33 packages; `tsc --noEmit` exited 0; build emitted 190.77 kB" is not.
+3. **Record the reversals.** A log that only contains decisions that survived is a lie, and
+   the discarded reasoning is usually the part worth re-reading.
+4. **Never edit a past entry** except to append a correction, dated and marked as such.
+
+## Index
+
+**Daily entries**
+
+- [2026-08-01](2026-08-01.md) — Day 1. Design from scratch, `DESIGN.md`, `CLAUDE.md`,
+  full Phase 1 scaffold, first push (`ce85740`).
+
+**Reference**
+
+- [react-and-vite](reference/react-and-vite.md) — every React and Vite decision in this repo,
+  from zero knowledge. Line-by-line walkthroughs of `index.html`, `main.tsx`, `App.tsx`,
+  `vite.config.ts`, `tsconfig.json` and `package.json`; the React render model; the
+  React-plus-canvas pattern needed for the timeline; and the gotchas ranked by how soon they
+  bite.
