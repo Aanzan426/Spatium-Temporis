@@ -39,10 +39,16 @@ it. Between them you can always answer "why is it like this?" and "what did I th
 
 **Daily entries**
 
-- [2026-08-01](2026-08-01.md) — Day 1. Design from scratch, `DESIGN.md`, `CLAUDE.md`,
-  full Phase 1 scaffold, first push (`ce85740`).
+- [2026-08-01](2026-08-01.md) — Day 1. Design from scratch, `DESIGN.md`, `CLAUDE.md`, full
+  Phase 1 scaffold and first push (`ce85740`); then the converter spec and fixture generator,
+  the single-source workbook layout, the Arbor side project, and an eleven-month learning
+  plan. 21 sections, 4 reversed decisions, 3 bugs found.
 
 **Reference**
+
+> The Aug 2026 → Jun 2027 learning plan lived here briefly and has moved to its own repo,
+> along with its generator (`tools/learning-plan/`). Recorded in
+> [2026-08-01](2026-08-01.md) §15 for the reasoning; the files themselves are no longer here.
 
 - [react-and-vite](reference/react-and-vite.md) — every React and Vite decision in this repo,
   from zero knowledge. Line-by-line walkthroughs of `index.html`, `main.tsx`, `App.tsx`,

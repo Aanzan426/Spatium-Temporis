@@ -45,6 +45,19 @@ These are cheap now and impossible to retrofit. Don't let them slip:
 7. **UTC epoch ms stored, local time rendered, a real date library used.**
 8. **No domain ever gets its own table or code path** — domains are runtime data.
 9. **Every page is a projection over the one store** — no page-specific tables.
+10. **Anything defined in more than one place will drift** — define it once as data and derive
+    the rest. `src/export/workbook-layout.ts` is the pattern: columns are an `as const` array,
+    row types are mapped from it, and adding a column breaks every consumer at compile time.
+11. **Generated files are never hand-edited.** Fixture workbooks come from `tools/`; edit the
+    source and re-run.
+
+## Tools
+
+`tools/` holds Node CLIs run with `tsx` (Node 20 cannot strip types natively). They are
+consumers of the app, never imported by it. `tsconfig.json` includes `tools` and sets
+`esModuleInterop`, which the CommonJS `exceljs` import requires.
+
+- `tools/xlsx-to-jsonl/` — the curation → training-data converter. Read `SPEC.md` first.
 
 ## Stack
 
