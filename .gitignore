@@ -1,0 +1,27 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ---------------------------------------------------------------------------
+# PERSONAL DATA — never commit. This repo is public; the database is a record
+# of an entire inner life. Losing this line is not a style issue.
+# ---------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+/data/
+/exports/
+*.xlsx
+*.jsonl
+
+.DS_Store
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/*
+!.vscode/extensions.json

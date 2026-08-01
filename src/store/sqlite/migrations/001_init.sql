@@ -1,0 +1,16 @@
+-- Initial schema.
+--
+-- Write this from docs/DESIGN.md §2 — the schema sketch there is the spec, and typing
+-- it out yourself is the fastest way to actually hold the model in your head. Change
+-- whatever is wrong in it, then update the doc to match.
+--
+-- Tables: nodes, spans, edges, events, recurrences, occurrences, revisions, node_types
+--
+-- Reminders while writing it:
+--   - TEXT primary keys (ULIDs), never INTEGER AUTOINCREMENT
+--   - nodes.type and spans.start_ms/end_ms are NULLABLE — undated capture is valid
+--   - all timestamps INTEGER, UTC epoch ms
+--   - occurrences.date_ms is LOCAL midnight of its day
+--   - occurrences.outcome exists now even though its UI is Phase 2 (no later migration)
+--   - index what you will actually query: spans by range, occurrences by date_ms,
+--     events by (node_id, ts)
