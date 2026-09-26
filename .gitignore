@@ -1,5 +1,13 @@
 node_modules/
 dist/
+
+# Capacitor: the generated Android project. Commit android/ once it exists (docs/ANDROID.md
+# explains why — the manifest needs two hand-added permissions), but never its build output.
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public/
 dist-ssr/
 *.local
 .vite/
@@ -15,6 +23,10 @@ dist-ssr/
 /exports/
 *.xlsx
 *.jsonl
+# Snapshots (src/export/snapshot.ts) are the whole database as JSON — the single most
+# sensitive file this project produces. The repo is public.
+spatium-*.json
+/snapshots/
 
 .DS_Store
 *.log

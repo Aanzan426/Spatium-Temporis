@@ -27,6 +27,7 @@
  * single event on release, not 120 at 60fps.
  */
 
+import { deviceIdentity } from '../core/device'
 import { newId } from '../core/ids'
 import type {
   Edge,
@@ -59,11 +60,14 @@ export interface AppendInput {
 
 export function makeEvent(input: AppendInput): Event {
   const ts = input.ts ?? Date.now()
+  const device = deviceIdentity()
   return {
     id: newId(ts),
     ts,
     node_id: input.node_id,
     kind: input.kind,
+    device_id: device.id,
+    device_kind: device.kind,
     payload: {
       before: input.before,
       after: input.after,

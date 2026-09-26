@@ -4,7 +4,11 @@ A personal life-planning system: a dynamic, linkable, zoomable map of everything
 thinks about — projects, goals, books, workouts, ideas, dreams, long shots — across time
 scales from hours to decades.
 
-**Read `docs/DESIGN.md` first.** It holds the data model, the precision and magnitude specs,
+**Read [`docs/HANDOFF.md`](docs/HANDOFF.md) first**, then `docs/DESIGN.md`. The handoff
+is the orientation: what exists today, what is verified, what is load-bearing, and the
+traps that are not obvious from the code. `DESIGN.md` is the reasoning underneath it.
+
+**`docs/DESIGN.md`** It holds the data model, the precision and magnitude specs,
 the timeline zoom mechanic, the phase roadmap, and the reasoning behind each. Don't
 re-derive those decisions; if one is wrong, change it *and update the doc*.
 
@@ -19,6 +23,11 @@ a dated correction.
 ## Working agreement
 
 **The user writes the code. Claude designs, guides, explains and reviews.**
+
+> This was suspended once, on 2026-09-26, at the user's explicit request — Phases 1 and
+> 2 were implemented by Claude in a single day. It is **back in force by default.** Do
+> not write implementation code unless asked for it in this session; being asked in a
+> previous one does not carry over.
 
 The user wants to become fluent in this stack, not to receive a finished app. So: hand over
 the design for a piece, answer questions, review what comes back, catch problems early.
@@ -50,6 +59,15 @@ These are cheap now and impossible to retrofit. Don't let them slip:
     row types are mapped from it, and adding a column breaks every consumer at compile time.
 11. **Generated files are never hand-edited.** Fixture workbooks come from `tools/`; edit the
     source and re-run.
+12. **Occurrence ids are derived from `(node_id, date_ms)`, never minted** — see
+    `src/core/derived-ids.ts`. This is what makes a two-device merge idempotent. Changing
+    that function forks every future occurrence away from every past one, so it is
+    effectively frozen. It must also keep producing a valid ULID: the workbook validates
+    every id as 26 characters of Crockford base32.
+13. **Every write records which device made it, and every outcome records when it was
+    answered.** `events.device_id` and `occurrences.answered_at`. Neither can be
+    backfilled, and `answered_at - end_ms` is the only way to tell a prompt answer from
+    a reconstruction (§9).
 
 ## Tools
 
@@ -58,18 +76,31 @@ consumers of the app, never imported by it. `tsconfig.json` includes `tools` and
 `esModuleInterop`, which the CommonJS `exceljs` import requires.
 
 - `tools/xlsx-to-jsonl/` — the curation → training-data converter. Read `SPEC.md` first.
+  `sample.ts` and `broken.ts` generate the two fixtures; `roundtrip.ts` is its test.
+- `tools/store-check.ts` — replay-equals-state, the frozen-past rule, the two-device
+  merge, and the only place `001_init.sql` actually runs (via Node 22's `node:sqlite`).
+- `tools/merge-snapshot.ts` — union two snapshots' event logs and replay. Never restore
+  one device's snapshot over the other's database; see `docs/ANDROID.md`.
+
+`npm run check` runs the typecheck and both scripts. There is no test runner and does not
+need to be one: they exit non-zero.
 
 ## Stack
 
 - React + TypeScript + Vite
 - Canvas 2D for the timeline (not SVG, not DOM — thousands of ticks and bars)
 - SQLite behind a `Store` interface — wa-sqlite/sql.js now, native SQLite later
-- Ships as a PWA now; Capacitor → Android APK in Phase 2; the `Store` interface is what
-  keeps each of those a swap rather than a rewrite
-- Phone = capture only. Desktop = structure and visualize. One database, two views.
+- Capacitor → Android APK, built by CI (`docs/ANDROID.md`). The PWA is still unimplemented
+  despite §7 claiming it. The `Store` interface is what keeps each packaging a swap
+- Phone = capture **and adherence**. Desktop = structure and visualize. One database,
+  two views. See §7's 2026-09-26 revision: the dividing line is *time-critical work goes
+  where the device is*, not screen size
+- `src/bootstrap.ts` is the only file that knows which platform it is on
 
 ## Current phase
 
-**Phase 1 — two pages.** Main page (timeline + inbox + day-lanes) and Scheduler page
-(week/month fold, tiny recurrence subset, per-occurrence outcomes, "as of" revision
-scrubber). Full scope in `docs/DESIGN.md` §10, including what is deliberately excluded.
+**Phase 2 — Android and adherence.** Phase 1 is implemented and verified (both pages,
+the store, the event log, the converter, the exports). Phase 2 has the phone view, the
+end-of-block alarm, the two-device merge and the Capacitor wrapper built; what remains is
+listed in `docs/HANDOFF.md`. Phase 1's full scope, and what is deliberately excluded, is
+still `docs/DESIGN.md` §10.

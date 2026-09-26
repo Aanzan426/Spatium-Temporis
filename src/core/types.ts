@@ -118,6 +118,12 @@ export interface Event {
   node_id: Id | null
   kind: EventKind
   payload: EventPayload
+  /**
+   * Which device wrote this. See `src/core/device.ts` for why it is a column.
+   * Nullable only because events written before it existed cannot be backfilled.
+   */
+  device_id: Id | null
+  device_kind: string | null
 }
 
 /**
@@ -177,6 +183,20 @@ export interface Occurrence {
   follow_up_node_id: Id | null
   note: string | null
   created_at: Millis
+  /**
+   * When the outcome was ANSWERED, as opposed to when the block ended.
+   *
+   * §9's whole argument is that reconstruction is fiction: an outcome given two seconds
+   * after a block ends and one reconstructed at midnight are different quality data.
+   * Android will sometimes deliver an alarm late — Doze, a phone in a pocket, a
+   * notification dismissed and answered hours later — so the gap is real and routine.
+   *
+   * Without this column the two are indistinguishable afterwards and every outcome has
+   * to be treated as equally trustworthy, which is exactly the assumption the alarm
+   * exists to avoid making. `answered_at - end_ms` is the honesty measure, and it
+   * cannot be backfilled.
+   */
+  answered_at: Millis | null
 }
 
 /**
