@@ -26,6 +26,9 @@
  */
 
 import { DatabaseSync } from 'node:sqlite'
+import { merge } from './merge-snapshot'
+import { occurrenceId } from '../src/core/derived-ids'
+import { isUlid } from '../src/core/ids'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { addDays, localMidnight, now } from '../src/core/time'
@@ -163,6 +166,58 @@ function main(): void {
   check('materializePast is idempotent', second === 0, `${second} rows written on re-run`)
 
   checkReplay(store, 'MemoryStore after edits')
+
+  // --- 4b. derived occurrence ids ----------------------------------------
+  const anyOcc = store.listOccurrences()[0]!
+  check('occurrence ids are derived, not minted',
+    anyOcc.id === occurrenceId(anyOcc.node_id, anyOcc.date_ms))
+  check('a derived id is still a valid ULID (the workbook validates it)',
+    store.listOccurrences().every((o) => isUlid(o.id)),
+    `${store.listOccurrences().length} checked`)
+  check('derived ids sort by the day they belong to',
+    store
+      .listOccurrences()
+      .slice()
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .every((o, i, all) => i === 0 || all[i - 1]!.date_ms <= o.date_ms))
+
+  // --- 4c. the two-device merge ------------------------------------------
+  //
+  // The scenario that matters: the phone records outcomes while the desktop plans.
+  // Neither may lose its work, and running the merge twice must change nothing.
+  const phone = new MemoryStore()
+  seed(phone)
+  const desktop = MemoryStore.fromSnapshot(phone.snapshot())
+
+  const block = phone.listOccurrences().find((o) => o.end_ms !== null)!
+  phone.setOutcome(block.id, 'done')
+  const planned = desktop.listNodes().find((n) => n.title === 'Quant role')!
+  desktop.updateNode(planned.id, { title: 'Quant role — applications' })
+
+  const merged = merge(desktop.snapshot(), phone.snapshot()).snapshot
+  const mergedStore = MemoryStore.fromSnapshot(merged)
+  check("the merge keeps the phone's outcome",
+    mergedStore.listOccurrences().find((o) => o.id === block.id)?.outcome === 'done')
+  check("the merge keeps the desktop's edit",
+    mergedStore.getNode(planned.id)?.title === 'Quant role — applications')
+
+  const twice = merge(merged, phone.snapshot()).snapshot
+  check('merging is idempotent',
+    twice.events.length === merged.events.length &&
+      twice.occurrences.length === merged.occurrences.length,
+    `${merged.events.length} events, ${merged.occurrences.length} occurrences`)
+
+  // Both devices materialize independently; the derived ids must collapse rather than
+  // double up. This is the whole reason for core/derived-ids.ts.
+  const phoneAlone = new MemoryStore()
+  seed(phoneAlone)
+  const desktopAlone = MemoryStore.fromSnapshot(phoneAlone.snapshot())
+  desktopAlone.materializePast(Date.now())
+  phoneAlone.materializePast(Date.now())
+  const bothMaterialized = merge(desktopAlone.snapshot(), phoneAlone.snapshot()).snapshot
+  const ids = bothMaterialized.occurrences.map((o) => o.id)
+  check('two devices materializing the same days produce no duplicates',
+    new Set(ids).size === ids.length, `${ids.length} occurrences, ${new Set(ids).size} unique`)
 
   // --- 5. the SQL ---------------------------------------------------------
   const migration = readFileSync(

@@ -62,7 +62,11 @@ CREATE TABLE IF NOT EXISTS events (
   ts      INTEGER NOT NULL,
   node_id TEXT,
   kind    TEXT NOT NULL,
-  payload TEXT NOT NULL DEFAULT '{}'       -- JSON, carrying {before, after}  (§5.4)
+  payload TEXT NOT NULL DEFAULT '{}',      -- JSON, carrying {before, after}  (§5.4)
+  -- Which device wrote this. Nullable: events from before the field existed cannot be
+  -- backfilled, and a merge has to be able to read them anyway.
+  device_id   TEXT,
+  device_kind TEXT
 );
 
 -- Replay walks the log in ts order; the node index serves "history of this thing".
@@ -95,7 +99,10 @@ CREATE TABLE IF NOT EXISTS occurrences (
   reason     TEXT,
   follow_up_node_id TEXT REFERENCES nodes(id),
   note       TEXT,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  -- When the outcome was ANSWERED, not when the block ended. `answered_at - end_ms` is
+  -- how a two-second answer is told apart from a midnight reconstruction (§9).
+  answered_at INTEGER
 );
 
 -- The merge in `blocksInRange` suppresses a projection wherever a real row exists for

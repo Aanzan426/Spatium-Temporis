@@ -114,6 +114,8 @@ export class SqliteStore extends MemoryStore {
           node_id: str(r.node_id!),
           kind: String(r.kind) as Event['kind'],
           payload: JSON.parse(String(r.payload ?? '{}')) as Event['payload'],
+          device_id: str(r.device_id!),
+          device_kind: str(r.device_kind!),
         })),
       recurrences: this.db
         .all<Record<string, SqlValue>>('SELECT * FROM recurrences')
@@ -140,6 +142,7 @@ export class SqliteStore extends MemoryStore {
           follow_up_node_id: str(r.follow_up_node_id!),
           note: str(r.note!),
           created_at: Number(r.created_at),
+          answered_at: num(r.answered_at!),
         })),
       revisions: this.db
         .all<Record<string, SqlValue>>('SELECT * FROM revisions')
@@ -175,13 +178,10 @@ export class SqliteStore extends MemoryStore {
     transact(this.db, () => {
       for (const e of events) {
         this.writeTarget(e)
-        this.db.run('INSERT INTO events (id, ts, node_id, kind, payload) VALUES (?, ?, ?, ?, ?)', [
-          e.id,
-          e.ts,
-          e.node_id,
-          e.kind,
-          JSON.stringify(e.payload),
-        ])
+        this.db.run(
+          'INSERT INTO events (id, ts, node_id, kind, payload, device_id, device_kind) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [e.id, e.ts, e.node_id, e.kind, JSON.stringify(e.payload), e.device_id, e.device_kind],
+        )
       }
     })
   }
@@ -265,14 +265,15 @@ export class SqliteStore extends MemoryStore {
         const o = after as unknown as Occurrence
         this.db.run(
           `INSERT INTO occurrences
-             (id, node_id, date_ms, start_ms, end_ms, outcome, reason, follow_up_node_id, note, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             (id, node_id, date_ms, start_ms, end_ms, outcome, reason, follow_up_node_id, note, created_at, answered_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              date_ms=excluded.date_ms, start_ms=excluded.start_ms, end_ms=excluded.end_ms,
              outcome=excluded.outcome, reason=excluded.reason,
-             follow_up_node_id=excluded.follow_up_node_id, note=excluded.note`,
+             follow_up_node_id=excluded.follow_up_node_id, note=excluded.note,
+             answered_at=excluded.answered_at`,
           [o.id, o.node_id, o.date_ms, o.start_ms, o.end_ms, o.outcome, o.reason,
-           o.follow_up_node_id, o.note, o.created_at],
+           o.follow_up_node_id, o.note, o.created_at, o.answered_at],
         )
         return
       }

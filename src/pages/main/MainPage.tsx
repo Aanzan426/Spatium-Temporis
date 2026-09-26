@@ -228,6 +228,83 @@ function Inspector({ node }: { node: Node | null }) {
       >
         {node.status === 'abandoned' ? 'un-abandon' : 'abandon'}
       </button>
+
+      <Links node={node} />
     </section>
+  )
+}
+
+/**
+ * Edges, at last given a way in.
+ *
+ * The schema and `link`/`unlink` have existed since Phase 1 with nothing able to invoke
+ * them, which made "contents are nodes joined by edges" (DESIGN § Blocks and contents)
+ * an unreachable claim. This is the desktop half; the phone half is the alarm's "what
+ * now", which creates a node and links it to the occurrence that failed (§9).
+ *
+ * Relation names are user vocabulary (§2) — free text with suggestions from what
+ * already exists, never a fixed list. `datalist` rather than a `select`, so a new
+ * relation costs no more than reusing an old one.
+ */
+function Links({ node }: { node: Node }) {
+  const store = useStore()
+  const edges = useQuery((s) => s.edgesForNode(node.id), [node.id])
+  const nodes = useQuery((s) => new Map(s.listNodes().map((n) => [n.id, n])))
+  const relations = useQuery((s) => [...new Set(s.listNodes().flatMap((n) => s.edgesForNode(n.id).map((e) => e.relation)))])
+  const [target, setTarget] = useState('')
+  const [relation, setRelation] = useState('relates to')
+
+  return (
+    <div className="links">
+      <span className="hint">links</span>
+      <ul>
+        {edges.map((edge) => {
+          const outgoing = edge.from_node === node.id
+          const other = nodes.get(outgoing ? edge.to_node : edge.from_node)
+          return (
+            <li key={edge.id}>
+              <span className="relation">{outgoing ? edge.relation : `← ${edge.relation}`}</span>
+              <span>{other?.title ?? '—'}</span>
+              <button className="link" onClick={() => store.unlink(edge.id)}>
+                unlink
+              </button>
+            </li>
+          )
+        })}
+        {edges.length === 0 && <li className="empty">none</li>}
+      </ul>
+
+      <div className="add">
+        <input
+          list="spatium-relations"
+          value={relation}
+          onChange={(e) => setRelation(e.target.value)}
+        />
+        <datalist id="spatium-relations">
+          {relations.map((r) => (
+            <option key={r} value={r} />
+          ))}
+        </datalist>
+        <select value={target} onChange={(e) => setTarget(e.target.value)}>
+          <option value="">pick a node…</option>
+          {[...nodes.values()]
+            .filter((n) => n.id !== node.id)
+            .map((n) => (
+              <option key={n.id} value={n.id}>
+                {n.title}
+              </option>
+            ))}
+        </select>
+        <button
+          disabled={!target || !relation.trim()}
+          onClick={() => {
+            store.link(node.id, target, relation.trim())
+            setTarget('')
+          }}
+        >
+          link
+        </button>
+      </div>
+    </div>
   )
 }

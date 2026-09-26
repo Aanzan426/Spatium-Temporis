@@ -415,3 +415,171 @@ button.link:disabled { opacity: 0.4; cursor: default; text-decoration: none; }
   .split { grid-template-columns: 1fr; }
   .inspector { border-left: none; border-top: 1px solid var(--rule); }
 }
+
+/* ============================================================ phone view */
+
+/*
+ * The phone is a different shape, not a squeezed desktop. Full-bleed, one column,
+ * bottom navigation, and touch targets at 44px minimum — below that a thumb misses,
+ * and a miss on the outcome buttons is an answer recorded for the wrong block.
+ *
+ * §7: phone captures, desktop structures and visualizes. Nothing here zooms, pans or
+ * renders a timeline, because none of those are usable at 390px and none of them are
+ * what you open a phone for.
+ */
+
+.phone {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* Home-indicator and notch. Without this the tab bar sits under the gesture bar. */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.phone-body { flex: 1; min-height: 0; overflow-y: auto; }
+
+.phone-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--rule);
+  background: var(--bg-sunken);
+}
+.phone-tabs button {
+  background: none;
+  border: none;
+  padding: 14px 0;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.phone-tabs button.on { color: var(--ink); box-shadow: inset 0 2px 0 var(--focus); }
+
+/* --- capture: the whole product, on one screen --- */
+
+.capture { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.capture textarea {
+  width: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 12px;
+  font: inherit;
+  resize: none;
+}
+.capture textarea:focus { border-color: var(--focus); outline: none; }
+.capture textarea::placeholder { color: var(--ink-faint); }
+
+button.primary { background: var(--focus); color: #10121a; border: none; border-radius: var(--radius); padding: 10px 16px; font-weight: 600; cursor: pointer; }
+button.primary:disabled { opacity: 0.35; }
+button.big { padding: 15px; font-size: 16px; }
+
+.receipt { color: var(--ink-muted); font-size: 12px; margin: 0; }
+
+/* --- today --- */
+
+.phone-page { padding: 16px; display: flex; flex-direction: column; gap: 22px; }
+.phone-page h2 { font-size: 13px; font-weight: 600; margin: 0 0 10px; }
+.phone-page ul { list-style: none; margin: 0; padding: 0; }
+
+/*
+ * Outstanding blocks come first and are the only emphasised thing on the screen,
+ * because they are the only thing here with a deadline (§9). Everything below is
+ * reference.
+ */
+.pending li {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.pending .row { display: flex; gap: 10px; align-items: baseline; margin-bottom: 10px; }
+.pending .when { color: var(--ink-muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.pending .what { flex: 1; }
+
+.answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.answer {
+  min-height: 44px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+}
+/*
+ * Green/amber/red is the palette reserved for the diff and for outcomes, and never for
+ * categories (§9). This is the other legitimate use of it.
+ */
+.answer.done { border-color: rgba(158, 206, 106, 0.6); color: #9ece6a; }
+.answer.partial { border-color: rgba(224, 175, 104, 0.6); color: #e0af68; }
+.answer.missed { border-color: rgba(247, 118, 142, 0.6); color: #f7768e; }
+
+.today li, .phone-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--rule);
+}
+.today .when, .phone-list .when { color: var(--ink-muted); font-variant-numeric: tabular-nums; font-size: 12px; min-width: 42px; }
+.today .what, .phone-list .what { flex: 1; }
+.today li.answered { opacity: 0.5; }
+.today .mark { font-size: 11px; color: var(--ink-muted); }
+
+.notice {
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  border-left: 2px solid var(--rule-strong);
+  padding-left: 10px;
+  margin: 0;
+}
+
+/* --- the outcome sheet --- */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+}
+.sheet {
+  width: 100%;
+  background: var(--bg-raised);
+  border-top: 1px solid var(--rule-strong);
+  border-radius: 10px 10px 0 0;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sheet h3 { margin: 0; font-size: 15px; }
+.sheet label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ink-muted); }
+.sheet input {
+  background: var(--bg-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 11px;
+  font-size: 16px; /* 16px or iOS zooms the viewport on focus */
+}
+.segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.segmented button {
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.segmented button.on { border-color: var(--focus); color: var(--ink); }
+.sheet-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.sheet-actions button { min-height: 44px; padding: 0 18px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius); cursor: pointer; }
+
+/* --- desktop: links on the inspector --- */
+
+.links { display: flex; flex-direction: column; gap: 6px; }
+.links ul { list-style: none; margin: 0; padding: 0; }
+.links li { display: flex; gap: 6px; align-items: baseline; font-size: 12px; padding: 3px 0; }
+.links .relation { color: var(--ink-muted); }
+.links .add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 4px; }
+.links input, .links select { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: var(--radius); padding: 5px; font-size: 12px; }

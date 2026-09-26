@@ -1,0 +1,96 @@
+# Build the Android APK on push, and attach it to a release on a tag.
+#
+# WHY CI RATHER THAN A LOCAL BUILD
+# --------------------------------
+# The APK needs the Android SDK, a JDK and Gradle. Setting that up on a laptop is an
+# afternoon, and re-setting it up after an OS reinstall is another one. GitHub's runners
+# already have all three, so the phone build becomes: push, wait four minutes, download
+# from the Actions tab onto the phone.
+#
+# It also makes the build reproducible by someone who is not you, which is the only real
+# test of whether the setup instructions in README are true.
+#
+# INSTALLING THE RESULT
+# ---------------------
+# `app-debug.apk` is signed with the standard Android debug key, so it installs by
+# sideloading (allow "install unknown apps" for your browser or file manager once). That
+# is deliberate: §7 defers the Play Store on purpose — it exists to distribute to
+# strangers, and this app has one user.
+#
+# A debug-signed APK cannot be upgraded in place by a release-signed one later, so if
+# you ever do sign it properly, that first install needs an uninstall first — which
+# wipes app-private storage, and therefore the database. Take a snapshot before doing
+# that.
+
+name: android
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # The same three things that have to pass locally: the typecheck, the store and
+      # replay assertions, and the converter round trip. No test framework — two scripts
+      # that exit non-zero.
+      - run: npm run check
+
+  apk:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - run: npm ci
+
+      # Order matters: `cap sync` copies dist/ into the Android project, so a stale
+      # dist/ ships a stale app and nothing warns you.
+      - name: Build the web bundle
+        run: npm run build
+
+      - name: Add the Android platform
+        run: |
+          npx cap add android || echo "android/ already present"
+          npx cap sync android
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Assemble the debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spatium-temporis-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          # Long enough to still be there next time you look, short enough not to
+          # accumulate a year of builds.
+          retention-days: 30
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk

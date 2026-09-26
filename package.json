@@ -12,7 +12,9 @@
     "check:store": "tsx tools/store-check.ts",
     "check:roundtrip": "TZ=Asia/Kolkata tsx tools/xlsx-to-jsonl/roundtrip.ts",
     "fixtures": "tsx tools/xlsx-to-jsonl/sample.ts && tsx tools/xlsx-to-jsonl/broken.ts",
-    "convert": "tsx tools/xlsx-to-jsonl/cli.ts"
+    "convert": "tsx tools/xlsx-to-jsonl/cli.ts",
+    "android": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
+    "merge": "tsx tools/merge-snapshot.ts"
   },
   "dependencies": {
     "date-fns": "^4.4.0",

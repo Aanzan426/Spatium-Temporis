@@ -5,6 +5,9 @@ workouts, ideas, dreams, long shots — across time scales from hours to decades
 
 Not a task manager. A place to put a mind in front of its own eyes.
 
+**Start here: [`docs/HANDOFF.md`](docs/HANDOFF.md)** — current state, what is verified,
+what is load-bearing, and the traps. It is rewritten whenever the state changes.
+
 **Design and rationale: [`docs/DESIGN.md`](docs/DESIGN.md).** Read it before touching
 anything. It is a living document — when the plan changes, it changes.
 
@@ -13,6 +16,11 @@ what happened, why, what was reversed, and explanations of anything new. `DESIGN
 the current state and loses history; the log keeps it.
 
 ## Status
+
+**Phase 2 in progress — Android.** The phone view, the end-of-block alarm, the
+two-device merge and the Capacitor wrapper are built; the APK is produced by CI
+(`docs/ANDROID.md`). What is not yet done: sql.js on the web path, the PWA, and pinch
+zoom on the timeline.
 
 **Phase 1 is implemented.** Both pages work against an in-memory store with the full
 event log; the SQLite store is written and verified headless but not yet wired into the

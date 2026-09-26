@@ -11,6 +11,7 @@
  * script over both.
  */
 
+import { occurrenceId } from '../../core/derived-ids'
 import { newId } from '../../core/ids'
 import { describeRecurrence, firesOn, projectedKey } from '../../core/recurrence'
 import { addDays, atMinutes, localMidnight, now } from '../../core/time'
@@ -355,7 +356,9 @@ export class MemoryStore implements Store {
         const key = projectedKey(rule.node_id, day)
         if (firesOn(rule, day) && !existing.has(key)) {
           const row: Occurrence = {
-            id: newId(ts),
+            // DERIVED, never minted: both devices produce the same id for the same
+            // occurrence, so a merge deduplicates itself (core/derived-ids.ts).
+            id: occurrenceId(rule.node_id, day),
             node_id: rule.node_id,
             date_ms: day,
             start_ms: atMinutes(day, rule.start_min),
@@ -365,6 +368,7 @@ export class MemoryStore implements Store {
             follow_up_node_id: null,
             note: null,
             created_at: ts,
+            answered_at: null,
           }
           this.occurrences.set(row.id, row)
           existing.add(key)
@@ -391,7 +395,7 @@ export class MemoryStore implements Store {
     const rule = this.recurrences.get(nodeId)
     const ts = now()
     const row: Occurrence = {
-      id: newId(ts),
+      id: occurrenceId(nodeId, day),
       node_id: nodeId,
       date_ms: day,
       start_ms: atMinutes(day, rule?.start_min ?? null),
@@ -401,6 +405,7 @@ export class MemoryStore implements Store {
       follow_up_node_id: null,
       note: null,
       created_at: ts,
+      answered_at: null,
     }
     this.occurrences.set(row.id, row)
     this.commit({
@@ -417,9 +422,13 @@ export class MemoryStore implements Store {
   ): Occurrence {
     const before = this.occurrences.get(occurrenceId)
     if (!before) throw new Error(`setOutcome: no occurrence ${occurrenceId}`)
+    const answeredAt = now()
     const after: Occurrence = {
       ...before,
       outcome,
+      // Stamped here rather than passed in, so no caller can claim an answer was
+      // prompter than it was (§9).
+      answered_at: outcome === null ? null : answeredAt,
       reason: extra?.reason !== undefined ? extra.reason : before.reason,
       note: extra?.note !== undefined ? extra.note : before.note,
       follow_up_node_id:
@@ -428,7 +437,7 @@ export class MemoryStore implements Store {
     this.occurrences.set(after.id, after)
     this.commit({
       kind: 'outcome_recorded', node_id: after.node_id, target: 'occurrence',
-      target_id: after.id, before: snap(before), after: snap(after), ts: now(),
+      target_id: after.id, before: snap(before), after: snap(after), ts: answeredAt,
     })
     return after
   }

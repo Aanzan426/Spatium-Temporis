@@ -24,24 +24,56 @@
  */
 
 import { useEffect, useState } from 'react'
+import type { AlarmBackend } from './alarms/alarms'
+import { reschedule } from './alarms/alarms'
 import { downloadSnapshot } from './export/snapshot'
 import { downloadWorkbook } from './export/xlsx'
 import { MainPage } from './pages/main/MainPage'
 import { SchedulerPage } from './pages/scheduler/SchedulerPage'
-import { MemoryStore } from './store/memory/MemoryStore'
-import { seed } from './store/memory/seed'
+import { PhoneApp } from './pages/phone/PhoneApp'
 import { StoreProvider } from './store/useStore'
 import type { Store } from './store/Store'
 
 type Page = 'main' | 'scheduler'
 
-export function App() {
-  const [store] = useState<Store>(() => {
-    const s = new MemoryStore()
-    seed(s)
-    return s
-  })
+export interface AppProps {
+  store: Store
+  alarms: AlarmBackend
+  /** Chosen in `bootstrap.ts`. The only place platform is decided. */
+  view: 'phone' | 'desktop'
+}
+
+export function App({ store, alarms, view }: AppProps) {
   const [page, setPage] = useState<Page>('main')
+  const [alarmsAvailable, setAlarmsAvailable] = useState(false)
+
+  /**
+   * The pending alarm set is stale by construction — it is scheduled ahead of time
+   * against a plan that keeps changing. So it is rebuilt on every write, which the
+   * store's own subscription gives for free, and once on open.
+   */
+  useEffect(() => {
+    let cancelled = false
+    const rebuild = () => {
+      void reschedule(store, alarms).then((n) => {
+        if (!cancelled) setAlarmsAvailable(n > 0)
+      })
+    }
+    rebuild()
+    const unsubscribe = store.subscribe(rebuild)
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [store, alarms])
+
+  if (view === 'phone') {
+    return (
+      <StoreProvider value={store}>
+        <PhoneApp alarmsAvailable={alarmsAvailable} />
+      </StoreProvider>
+    )
+  }
 
   /**
    * Export on a shortcut, from Phase 1 (§5.8). Backups matter more than the choice of
