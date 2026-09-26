@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run check:store && npm run check:roundtrip",
+    "check:store": "tsx tools/store-check.ts",
+    "check:roundtrip": "TZ=Asia/Kolkata tsx tools/xlsx-to-jsonl/roundtrip.ts",
+    "fixtures": "tsx tools/xlsx-to-jsonl/sample.ts && tsx tools/xlsx-to-jsonl/broken.ts",
+    "convert": "tsx tools/xlsx-to-jsonl/cli.ts"
   },
   "dependencies": {
     "date-fns": "^4.4.0",

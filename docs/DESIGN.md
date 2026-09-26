@@ -4,7 +4,7 @@
 > this file. Git keeps every previous version, so no plan is ever lost — which is, after
 > all, the point of the app.
 >
-> Last revised: 2026-08-01
+> Last revised: 2026-09-26
 
 ---
 
@@ -508,6 +508,13 @@ the ones that can never be recreated, are stuck worst.
 data is nested (a schedule has occurrences, which have outcomes and notes). Nesting does not
 flatten into CSV without losing structure or exploding into denormalized repetition.
 
+> **Implementation note (2026-09-26).** The app writes `.xlsx` itself — `src/export/zip.ts`
+> is a ~140-line stored-entry zip writer and `src/export/xlsx.ts` emits the sheet XML with
+> every cell as an inline string. No spreadsheet library is in the app bundle, and §3.1's
+> "write every cell as text" holds by construction rather than by discipline: there is no
+> code path that can emit a date cell. `exceljs` stays a devDependency of `tools/`, where
+> it reads workbooks back.
+
 **XLSX is the curation surface.** Export to `.xlsx` (which, unlike CSV, actually has sheets —
 one per revision window), review and edit it by hand, then run a helper that converts the curated
 sheets to training JSONL. That is a legitimate and useful loop: the spreadsheet is where a
@@ -540,3 +547,10 @@ the point of the local-SLM plan in the first place.
 - What is the very first zoom gesture — trackpad pinch, scroll, or a slider?
 - Does the inbox have any ordering beyond recency?
 - When two devices exist: last-write-wins, or something better?
+
+Two of these now have a *provisional* answer in code, by default rather than by decision —
+worth making explicit or reversing rather than leaving to drift:
+
+- Sections/templates: `NodeType.sections` exists and nodes carry free `attrs`, so the
+  current answer is "both".
+- Inbox ordering: recency only, sorted by ULID with no extra column.

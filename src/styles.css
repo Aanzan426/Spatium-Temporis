@@ -1,0 +1,417 @@
+/*
+ * Styling. One file, plain CSS, no system.
+ *
+ * DESIGN.md's step 1 says "no styling system", and that holds: there is no Tailwind, no
+ * CSS-in-JS, no theme provider. What there is, is a small set of custom properties at
+ * the top, because two files already need to agree on colour — this one and the canvas
+ * drawing code in `timeline/TimelineCanvas.tsx`, which cannot read a stylesheet.
+ *
+ * THE PALETTE IS LOAD-BEARING, NOT DECORATIVE
+ * -------------------------------------------
+ * Hue encodes category (§9's colour budget), so the accents below are a *categorical*
+ * scale — five hues of roughly equal weight, none of them the interface's own colour.
+ * Nothing in the chrome may use them, or a UI state would be mistaken for a category.
+ * The chrome gets ink and greys, and that is the whole of its palette.
+ *
+ * Near-black rather than white because this is an instrument that gets looked at for
+ * hours and because the light-cone aesthetic (§11) is thin bright lines on dark — this
+ * is the first, flattest version of it.
+ */
+
+:root {
+  --bg: #14161a;
+  --bg-raised: #1a1d23;
+  --bg-sunken: #101217;
+  --ink: #e8e6e1;
+  --ink-muted: rgba(232, 230, 225, 0.5);
+  --ink-faint: rgba(232, 230, 225, 0.28);
+  --rule: rgba(232, 230, 225, 0.12);
+  --rule-strong: rgba(232, 230, 225, 0.24);
+
+  /* Categorical. Chrome never uses these. */
+  --cat-work: #7aa2f7;
+  --cat-health: #9ece6a;
+  --cat-reading: #e0af68;
+  --cat-study: #bb9af7;
+  --cat-longshot: #f7768e;
+
+  --focus: #7aa2f7;
+
+  --step: 8px;
+  --radius: 3px;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.45 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Keyboard focus stays visible everywhere. The app is driven by shortcuts. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ chrome */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--step);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg-sunken);
+}
+
+.nav strong { font-weight: 600; letter-spacing: 0.01em; }
+
+.nav button, .toolbar button, .inspector button, .scrubber button {
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.nav button:hover, .toolbar button:hover { border-color: var(--rule-strong); }
+.nav button.on { background: rgba(232, 230, 225, 0.08); border-color: var(--rule-strong); }
+
+.hint {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.nav .hint { margin-left: auto; }
+
+button.link {
+  background: none;
+  border: none;
+  padding: 0 0 0 8px;
+  color: var(--ink-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+button.link:disabled { opacity: 0.4; cursor: default; text-decoration: none; }
+
+.empty { color: var(--ink-faint); }
+
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* ------------------------------------------------------------- main page */
+
+.main-page { flex-direction: row; }
+
+/*
+ * 35/65. The inbox is narrow because it holds one input and a list of short lines, and
+ * the timeline is wide because width is literally time. Desktop-shaped on purpose —
+ * phone is capture only (§7).
+ */
+.inbox {
+  width: 300px;
+  flex: 0 0 300px;
+  border-right: 1px solid var(--rule);
+  background: var(--bg-sunken);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+}
+
+.inbox-head { display: flex; align-items: baseline; justify-content: space-between; }
+.inbox-head h2 { font-size: 13px; font-weight: 600; margin: 0; }
+
+.inbox-input {
+  width: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 9px 10px;
+}
+.inbox-input::placeholder { color: var(--ink-faint); }
+.inbox-input:focus { border-color: var(--focus); }
+
+.inbox-list, .lane-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
+
+.inbox-item {
+  padding: 7px 9px;
+  border-radius: var(--radius);
+  border-left: 2px solid transparent;
+  cursor: grab;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inbox-item:hover { background: rgba(232, 230, 225, 0.05); }
+.inbox-item.selected { background: rgba(232, 230, 225, 0.08); border-left-color: var(--focus); }
+
+.main-surface {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.toolbar .hint { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+.canvas-host { padding: 0; }
+
+.timeline { position: relative; }
+.timeline-canvas { display: block; width: 100%; cursor: grab; touch-action: none; }
+.timeline-canvas:active { cursor: grabbing; }
+
+.timeline-status {
+  display: flex;
+  gap: 18px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.timeline-status span:last-child { margin-left: auto; }
+
+.split {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 260px;
+}
+
+.lanes, .inspector {
+  padding: 12px;
+  overflow-y: auto;
+}
+.inspector { border-left: 1px solid var(--rule); background: var(--bg-sunken); }
+
+.lanes-head { display: flex; align-items: baseline; justify-content: space-between; }
+.lanes-head h2 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+
+.lane {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.lane:hover { background: rgba(232, 230, 225, 0.05); }
+.lane.selected { background: rgba(232, 230, 225, 0.09); }
+/* Abandoned things dim. They do not disappear (§5.2). */
+.lane.dim { opacity: 0.42; }
+
+.swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.lane-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lane-meta { color: var(--ink-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.inspector { display: flex; flex-direction: column; gap: 10px; }
+.inspector label { display: flex; flex-direction: column; gap: 4px; color: var(--ink-muted); font-size: 12px; }
+.inspector select, .inspector-title {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+}
+.inspector-title { font-weight: 600; }
+
+/* --------------------------------------------------------- scheduler page */
+
+.scheduler-page { flex-direction: column; overflow-y: auto; }
+
+.scrubber {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.scrubber label { display: flex; align-items: center; gap: 8px; color: var(--ink-muted); font-size: 12px; }
+.scrubber input[type="range"] { width: min(420px, 40vw); accent-color: var(--focus); }
+/* Replayed history reads as another time, not another mode. */
+.scrubber.active { background: rgba(122, 162, 247, 0.07); }
+
+.fold { padding: 12px; }
+
+.fold-grid {
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.fold-col-head {
+  background: var(--bg-sunken);
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.fold-col {
+  position: relative;
+  background: var(--bg-raised);
+  /* A day is a column and time runs down it. 420px keeps 24h legible without scrolling. */
+  height: 420px;
+}
+
+.fold[data-cycle="month"] .fold-col { height: 260px; }
+.fold[data-cycle="month"] .block-label { display: none; }
+
+.block {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border: none;
+  border-radius: 2px;
+  padding: 2px 4px;
+  text-align: left;
+  overflow: hidden;
+  color: #10121a;
+  font-size: 11px;
+  cursor: pointer;
+}
+.block:disabled { cursor: default; }
+.block.selected { outline: 1.5px solid var(--ink); outline-offset: -1px; }
+
+/*
+ * Projected blocks are drawn hatched, not merely paler: "generated from the rule" is a
+ * different KIND of thing from "this happened", and a difference in opacity alone reads
+ * as a difference in importance instead.
+ */
+.block.projected {
+  background-image: repeating-linear-gradient(
+    -45deg, rgba(16, 18, 26, 0.34) 0 3px, transparent 3px 7px
+  );
+  opacity: 0.8;
+}
+
+.fold.historical { opacity: 0.62; }
+
+.fold-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+.fold-legend .swatch { background: var(--cat-work); }
+.fold-legend .swatch.projected {
+  background-image: repeating-linear-gradient(-45deg, rgba(16,18,26,0.4) 0 2px, transparent 2px 4px);
+}
+.fold-legend .hint { margin-left: auto; }
+
+/* ------------------------------------------------------- revisions strip */
+
+.strip { padding: 12px; border-top: 1px solid var(--rule); }
+.strip-head { display: flex; align-items: baseline; justify-content: space-between; }
+.strip-head h2, .compare-head h2 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+
+.strip-rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.card {
+  flex: 0 0 132px;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  text-align: left;
+}
+.card.selected { border-color: var(--focus); }
+.card-label { font-size: 12px; }
+.card-meta { font-size: 11px; color: var(--ink-muted); }
+
+/* Small multiples: identical scale, repeated form, differences caught by eye (§9). */
+.thumb {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  height: 74px;
+  background: var(--rule);
+}
+.thumb-col { position: relative; background: var(--bg-sunken); }
+.thumb-block { position: absolute; left: 0; right: 0; border-radius: 1px; }
+
+/* ------------------------------------------------------- comparison table */
+
+.compare { padding: 12px; border-top: 1px solid var(--rule); }
+.compare-head { display: flex; align-items: baseline; justify-content: space-between; }
+.compare-scroll { overflow-x: auto; }
+
+.compare table { border-collapse: collapse; font-size: 12px; min-width: 100%; }
+.compare th, .compare td {
+  border: 1px solid var(--rule);
+  padding: 5px 9px;
+  text-align: left;
+  white-space: nowrap;
+}
+.compare thead th { background: var(--bg-sunken); font-weight: 600; }
+.compare .slot-col { font-variant-numeric: tabular-nums; color: var(--ink-muted); }
+
+/* Unchanged rows dim; changed cells are emphasised. Never the whole row (§9). */
+.compare tr.unchanged td { opacity: 0.45; }
+.compare td.diff {
+  background: rgba(232, 230, 225, 0.08);
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+
+/* --------------------------------------------------------------- narrow */
+
+/*
+ * Phone = capture. Desktop = structure and visualise (§7). Below 900px the panels stop
+ * pretending to be a workspace: the inbox takes the screen and the rest stacks under
+ * it. The real phone view is a text box and a list, and it is Phase 2.
+ */
+@media (max-width: 900px) {
+  .main-page { flex-direction: column; }
+  .inbox { width: 100%; flex: 0 0 auto; border-right: none; border-bottom: 1px solid var(--rule); }
+  .split { grid-template-columns: 1fr; }
+  .inspector { border-left: none; border-top: 1px solid var(--rule); }
+}

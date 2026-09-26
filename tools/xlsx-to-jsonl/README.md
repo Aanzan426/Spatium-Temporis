@@ -21,8 +21,26 @@ local is the point of the local-SLM plan in the first place.
 
 ## Status
 
-**In progress.** [`SPEC.md`](SPEC.md) is the full specification — workbook layout, types,
-the emitter interface, the edge cases, and the build order.
+**Built.** [`SPEC.md`](SPEC.md) is the full specification — workbook layout, types, the
+emitter interface, the edge cases, and the build order — and all five steps of §4 now
+exist:
+
+```
+sample.ts     the valid fixture          broken.ts     the deliberately broken one
+read.ts       workbook -> raw cells      normalize.ts  raw -> typed records + errors
+emit.ts       the Emitter interface      cli.ts        arguments, wiring, JSONL
+tz.ts         local-date-in-a-zone -> epoch ms (SPEC 3.2)
+roundtrip.ts  export -> read -> normalize -> emit, asserted
+```
+
+```bash
+npm run fixtures
+npm run check:roundtrip
+npm run convert -- tools/xlsx-to-jsonl/fixtures/sample.xlsx --emitter raw > out.jsonl
+```
+
+Still deferred, and for the original reason: every emitter but `raw`. The training-record
+shape depends on which task gets fine-tuned, and that is still unchosen.
 
 The tool splits in two, and only one half is knowable yet:
 
