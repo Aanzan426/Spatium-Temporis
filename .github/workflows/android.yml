@@ -72,8 +72,8 @@ jobs:
 
       - name: Add the Android platform
         run: |
-          npx cap add android || echo "android/ already present"
-          npx cap sync android
+          npx @capacitor/cli add android || echo "android/ already present"
+          npx @capacitor/cli sync android
 
       - uses: android-actions/setup-android@v3
 
