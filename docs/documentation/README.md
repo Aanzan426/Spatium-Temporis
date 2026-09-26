@@ -14,6 +14,10 @@ and the reversal is recorded in the later entry.
 That distinction is the whole point. `DESIGN.md` loses history by design; this folder keeps
 it. Between them you can always answer "why is it like this?" and "what did I think before?"
 
+> **Starting a session?** [`docs/HANDOFF.md`](../HANDOFF.md) is the orientation
+> document — what exists, what is verified, what is load-bearing and why, and where the
+> traps are. These dated entries are the history behind it.
+
 ## What each entry contains
 
 - **State at start / state at end** — commits, what was tracked, what ran
@@ -39,6 +43,14 @@ it. Between them you can always answer "why is it like this?" and "what did I th
 
 **Daily entries**
 
+- [2026-09-26](2026-09-26.md) — Two sessions in one day, one file.
+  **Morning, §§1–7: Phase 1 implementation.** Every stub filled in, the converter
+  finished (`read` → `normalize` → `emit` → `cli`), a dependency-free XLSX writer, and
+  two verification scripts. 3 reversed decisions, 3 bugs found by the scripts on their
+  first run.
+  **Evening, §§8–13: Phase 2, Android.** The phone view, the end-of-block alarm, the
+  two-device merge, the Capacitor wrapper and CI for the APK. §7's device split revised.
+  Two columns and a derived-id scheme added while the only data was still `seed.ts`.
 - [2026-08-01](2026-08-01.md) — Day 1. Design from scratch, `DESIGN.md`, `CLAUDE.md`, full
   Phase 1 scaffold and first push (`ce85740`); then the converter spec and fixture generator,
   the single-source workbook layout, the Arbor side project, and an eleven-month learning

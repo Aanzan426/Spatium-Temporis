@@ -4,7 +4,7 @@
 > this file. Git keeps every previous version, so no plan is ever lost — which is, after
 > all, the point of the app.
 >
-> Last revised: 2026-08-01
+> Last revised: 2026-09-26
 
 ---
 
@@ -268,7 +268,28 @@ one user. A PWA or a sideloaded APK already puts it on the device.
 > **Phone = capture. Desktop = structure and visualize. One database, two views.**
 
 The 35/65 panels, drag-to-schedule, day-lanes and eventual graph are desktop-shaped and
-unusable at phone size. The phone view is a text box and a list — about a day of work.
+unusable at phone size.
+
+> **Revised 2026-09-26.** The split stands; its *scope* did not. "The phone view is a
+> text box and a list — about a day of work" was written when the desktop was assumed to
+> be the device that is usually on. It is not: the phone is the one that is always with
+> you, and that makes it the only device where a time-critical answer can be given
+> honestly.
+>
+> So the phone additionally owns **adherence** — the end-of-block alarm (§9) and the
+> outcome it collects — plus a read-only view of today and of the inbox. It still does
+> not own the timeline, the fold grid, the comparison table or the graph. The dividing
+> line is not screen size, it is this:
+>
+> **Time-critical work goes where the device is; everything else is on-demand and loses
+> nothing by waiting.** An outcome exists honestly for about two minutes after a block
+> ends. A rendering of the last three months is identical whether it is drawn today or
+> in a fortnight, because visualization is a pure read over stored data — nothing
+> accumulates while the desktop is off and nothing is missed.
+>
+> The consequence worth stating: the phone holds the authoritative copy and the desktop
+> becomes a mirror refreshed on demand. That makes §5.8's export the actual recovery
+> plan rather than a nicety — app-private storage on Android does not survive uninstall.
 
 ---
 
@@ -508,6 +529,13 @@ the ones that can never be recreated, are stuck worst.
 data is nested (a schedule has occurrences, which have outcomes and notes). Nesting does not
 flatten into CSV without losing structure or exploding into denormalized repetition.
 
+> **Implementation note (2026-09-26).** The app writes `.xlsx` itself — `src/export/zip.ts`
+> is a ~140-line stored-entry zip writer and `src/export/xlsx.ts` emits the sheet XML with
+> every cell as an inline string. No spreadsheet library is in the app bundle, and §3.1's
+> "write every cell as text" holds by construction rather than by discipline: there is no
+> code path that can emit a date cell. `exceljs` stays a devDependency of `tools/`, where
+> it reads workbooks back.
+
 **XLSX is the curation surface.** Export to `.xlsx` (which, unlike CSV, actually has sheets —
 one per revision window), review and edit it by hand, then run a helper that converts the curated
 sheets to training JSONL. That is a legitimate and useful loop: the spreadsheet is where a
@@ -539,4 +567,16 @@ the point of the local-SLM plan in the first place.
 - Are magnitude and precision independent, or does magnitude imply a default precision?
 - What is the very first zoom gesture — trackpad pinch, scroll, or a slider?
 - Does the inbox have any ordering beyond recency?
-- When two devices exist: last-write-wins, or something better?
+- When two devices exist: last-write-wins, or something better? *(Provisionally
+  answered 2026-09-26: the merge is the union of both event logs, replayed, with
+  last-write-wins per field and every overwrite reported rather than hidden —
+  `tools/merge-snapshot.ts`. Occurrence ids are derived from `(node_id, date_ms)` so
+  both devices produce the same id for the same block and the union deduplicates
+  itself. Good enough for one person with two devices; not a general answer.)*
+
+Two of these now have a *provisional* answer in code, by default rather than by decision —
+worth making explicit or reversing rather than leaving to drift:
+
+- Sections/templates: `NodeType.sections` exists and nodes carry free `attrs`, so the
+  current answer is "both".
+- Inbox ordering: recency only, sorted by ULID with no extra column.

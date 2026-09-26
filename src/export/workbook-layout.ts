@@ -54,11 +54,15 @@ export type ColumnDef = {
 // warn on a typo. Never reject an unknown value: capture is never gated (DESIGN §5.1).
 // ---------------------------------------------------------------------------
 
-export const MAGNITUDES = ['micro', 'kilo', 'mega', 'giga', 'tera'] as const
-export const PRECISIONS = [
-  'exact', 'hour', 'day', 'week', 'month', 'quarter', 'year', 'decade', 'someday',
-] as const
-export const OUTCOMES = ['done', 'skipped', 'partial', 'moved'] as const
+// Re-exported, not declared. These are DOMAIN vocabulary — they belong to the model in
+// `src/core/types.ts`, and `src/core` may never import from `src/export`. Declaring them
+// here as well would be exactly the drift invariant 10 exists to prevent: the workbook
+// would keep validating against a list the app had already moved past.
+//
+// The public surface of this module is unchanged, so every consumer still imports them
+// from here.
+export { MAGNITUDES, OUTCOMES, PRECISIONS } from '../core/types'
+import { MAGNITUDES, OUTCOMES, PRECISIONS } from '../core/types'
 
 // ---------------------------------------------------------------------------
 // Sheets
