@@ -77,11 +77,7 @@ jobs:
 
       - uses: android-actions/setup-android@v3
         with:
-          packages: |
-            build-tools;34.0.0
-            platforms;android-34
-            platform-tools
-            cmdline-tools;latest
+          packages: build-tools;34.0.0 platforms;android-34 platform-tools cmdline-tools;latest
 
       - name: Assemble the debug APK
         working-directory: android
