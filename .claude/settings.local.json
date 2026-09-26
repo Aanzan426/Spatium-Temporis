@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(set -e)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"typecheck exit: $?\")",
+      "Bash(npm run *)",
+      "Bash(git check-ignore *)",
+      "Bash(grep -n \"^#\\\\{2,3\\\\} \" docs/DESIGN.md)",
+      "Bash(grep -n \"^#\\\\{2,3\\\\} \" CLAUDE.md)",
+      "Bash(npm ls *)",
+      "Bash(npm --version)",
+      "Bash(grep -n \"^#\\\\{1,2\\\\} \" docs/documentation/reference/react-and-vite.md)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_close",
+      "Read(//home/deepaansh/temp/Arbor/**)",
+      "Bash(git -C /home/deepaansh/temp/Arbor log --oneline -3)",
+      "Bash(git -C /home/deepaansh/temp/Arbor remote -v)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(npx vite *)",
+      "Bash(curl -s -o /dev/null -w \"http %{http_code}\\\\n\" http://localhost:5199/)",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(curl -s -o /dev/null -w \"dev server: http %{http_code} @ localhost:5199\\\\n\" --max-time 2 http://localhost:5199/)",
+      "Bash(python3 -)",
+      "Bash(npx --no-install playwright --version)",
+      "mcp__playwright__browser_resize",
+      "Bash(node --check tools/snap.mjs)",
+      "Bash(grep *)",
+      "Bash(python3 -c \"import json;print\\(json.load\\(open\\('package.json'\\)\\)['devDependencies']\\)\")",
+      "Bash(npm i *)",
+      "Bash(npx tsx *)",
+      "Bash(node -e \"const m=require\\('exceljs'\\); console.log\\('keys:', Object.keys\\(m\\).slice\\(0,12\\)\\); console.log\\('has Workbook:', typeof m.Workbook\\); console.log\\('has default:', typeof m.default\\)\")",
+      "Bash(node -e \"const p=require\\('exceljs/package.json'\\); console.log\\('main:',p.main\\); console.log\\('types:',p.types||p.typings\\); console.log\\('exports:',JSON.stringify\\(p.exports\\)\\)\")",
+      "Bash(unzip -l b.xlsx)",
+      "Bash(node -e \"console.log\\(require\\('exceljs/package.json'\\).dependencies\\)\")",
+      "Bash(pkill -f \"vite preview --outDir docs\")",
+      "Bash(curl -s -o /dev/null -w \"preview server: %{http_code}\\\\n\" --max-time 2 http://localhost:5233/)"
+    ]
+  }
+}

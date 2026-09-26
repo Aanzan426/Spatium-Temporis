@@ -14,8 +14,22 @@ the current state and loses history; the log keeps it.
 
 ## Status
 
-**Phase 1**, two pages: the main timeline and the scheduler. Scope and deliberate
-exclusions in `docs/DESIGN.md` §10.
+**Phase 1 is implemented.** Both pages work against an in-memory store with the full
+event log; the SQLite store is written and verified headless but not yet wired into the
+app. Scope and deliberate exclusions in `docs/DESIGN.md` §10.
+
+```bash
+npm run check      # typecheck + store/replay assertions + the converter round trip
+npm run fixtures   # regenerate both fixture workbooks
+npm run convert -- tools/xlsx-to-jsonl/fixtures/sample.xlsx --emitter raw
+```
+
+`npm run check` is what stands in for a test suite: two `tsx` scripts that exit
+non-zero. `tools/store-check.ts` asserts that replaying the whole event log reproduces
+current state, that editing a recurrence rule does not rewrite the past, and that
+`001_init.sql` runs. `tools/xlsx-to-jsonl/roundtrip.ts` exports a workbook, reads it
+back with a different library, and asserts every row rejoins to the occurrence it came
+from.
 
 ## Running
 

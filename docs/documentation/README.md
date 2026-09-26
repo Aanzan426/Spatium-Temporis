@@ -39,6 +39,10 @@ it. Between them you can always answer "why is it like this?" and "what did I th
 
 **Daily entries**
 
+- [2026-09-26](2026-09-26.md) — Phase 1 implementation. Every stub filled in, the
+  converter finished (`read` → `normalize` → `emit` → `cli`), a dependency-free XLSX
+  writer, and two verification scripts. 3 reversed decisions, 3 bugs found by the
+  scripts on their first run.
 - [2026-08-01](2026-08-01.md) — Day 1. Design from scratch, `DESIGN.md`, `CLAUDE.md`, full
   Phase 1 scaffold and first push (`ce85740`); then the converter spec and fixture generator,
   the single-source workbook layout, the Arbor side project, and an eleven-month learning
