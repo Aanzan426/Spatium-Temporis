@@ -1,24 +1,15 @@
 /**
- * Seed data for development/demo only.
+ * Production seed - DISABLED.
  *
- * This is DISABLED by default. To enable fake data for testing, uncomment
- * the call in bootstrap.ts.
+ * The app starts clean with no pre-populated data.
+ * For test data, use `seed-test.ts` which is only imported by verification scripts.
  *
- * Nothing in the app depends on this file.
+ * Nothing in the app depends on this file in production.
  */
 
-import { addDays, addMonths, addYears, localMidnight, now } from '../../core/time'
 import type { Store } from '../Store'
-
-export function seed(store: Store): void {
-  // Intentionally left empty - no pre-populated tasks.
-  // The app starts clean. To add demo data for testing, uncomment this:
-  //
-  // if (store.listNodes().length > 0) return
-  //
-  // const today = localMidnight(now())
-  // const hour = 3_600_000
-  //
-  // // ... rest of original seed code
+export function seed(store: Store): void {
+  // Intentionally empty - no pre-populated tasks in production.
+  // Test data is in tools/seed-test.ts, imported only by store-check.ts
 }
 

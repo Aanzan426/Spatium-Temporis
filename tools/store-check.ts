@@ -35,7 +35,7 @@ import { addDays, localMidnight, now } from '../src/core/time'
 import { nodeSqliteAdapter } from '../src/store/sqlite/adapters/node-sqlite'
 import { replayAt } from '../src/store/events'
 import { MemoryStore } from '../src/store/memory/MemoryStore'
-import { seed } from '../src/store/memory/seed'
+import { seed } from './seed-test'
 import { SqliteStore } from '../src/store/sqlite/SqliteStore'
 import type { DatabaseSnapshot, Store } from '../src/store/Store'
 
