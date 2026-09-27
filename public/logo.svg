@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Space gradient background -->
+    <radialGradient id="spaceGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1d23" />
+      <stop offset="100%" stop-color="#0a0c10" />
+    </radialGradient>
+    
+    <!-- Timeline beam gradient - past to future -->
+    <linearGradient id="timelineGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#7aa2f7" stop-opacity="0.3" />
+      <stop offset="50%" stop-color="#7aa2f7" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#e8e6e1" stop-opacity="1" />
+    </linearGradient>
+    
+    <!-- Future branches gradient -->
+    <linearGradient id="branchGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7aa2f7" />
+      <stop offset="100%" stop-color="#bb9af7" />
+    </linearGradient>
+    
+    <!-- Glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="starGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle - the cosmos -->
+  <circle cx="100" cy="100" r="95" fill="url(#spaceGrad)" stroke="#1a1d23" stroke-width="1"/>
+  
+  <!-- Stars in background -->
+  <circle cx="30" cy="40" r="1" fill="#e8e6e1" opacity="0.6" filter="url(#starGlow)"/>
+  <circle cx="170" cy="60" r="1.2" fill="#e8e6e1" opacity="0.7" filter="url(#starGlow)"/>
+  <circle cx="50" cy="150" r="0.8" fill="#e8e6e1" opacity="0.5" filter="url(#starGlow)"/>
+  <circle cx="150" cy="140" r="1" fill="#e8e6e1" opacity="0.6" filter="url(#starGlow)"/>
+  <circle cx="25" cy="100" r="0.7" fill="#e8e6e1" opacity="0.4" filter="url(#starGlow)"/>
+  <circle cx="180" cy="100" r="0.9" fill="#e8e6e1" opacity="0.5" filter="url(#starGlow)"/>
+  <circle cx="80" cy="25" r="0.8" fill="#e8e6e1" opacity="0.5" filter="url(#starGlow)"/>
+  <circle cx="120" cy="175" r="1" fill="#e8e6e1" opacity="0.6" filter="url(#starGlow)"/>
+  
+  <!-- Main timeline - vertical axis (present moment) -->
+  <line x1="100" y1="170" x2="100" y2="40" stroke="url(#timelineGrad)" stroke-width="3" filter="url(#glow)"/>
+  
+  <!-- Past nodes (bottom - smaller, dimmer) -->
+  <circle cx="100" cy="160" r="4" fill="#7aa2f7" opacity="0.4"/>
+  <circle cx="100" cy="145" r="4" fill="#7aa2f7" opacity="0.5"/>
+  <circle cx="100" cy="130" r="4" fill="#7aa2f7" opacity="0.6"/>
+  
+  <!-- Present node (center - bright, largest) -->
+  <circle cx="100" cy="100" r="12" fill="#7aa2f7" filter="url(#glow)"/>
+  <circle cx="100" cy="100" r="6" fill="#e8e6e1"/>
+  <circle cx="100" cy="100" r="3" fill="#7aa2f7"/>
+  
+  <!-- Future branches (upper - diverging, brighter) -->
+  <!-- Branch 1 - left -->
+  <path d="M 100 80 Q 80 60 60 45" stroke="url(#branchGrad)" stroke-width="2" fill="none" filter="url(#glow)"/>
+  <circle cx="60" cy="45" r="4" fill="#bb9af7"/>
+  
+  <!-- Branch 2 - right -->
+  <path d="M 100 80 Q 120 60 140 45" stroke="url(#branchGrad)" stroke-width="2" fill="none" filter="url(#glow)"/>
+  <circle cx="140" cy="45" r="4" fill="#bb9af7"/>
+  
+  <!-- Branch 3 - center upward (main future) -->
+  <path d="M 100 70 L 100 30" stroke="#7aa2f7" stroke-width="2.5" filter="url(#glow)"/>
+  <circle cx="100" cy="30" r="5" fill="#e8e6e1" filter="url(#glow)"/>
+  <circle cx="100" cy="30" r="2.5" fill="#7aa2f7"/>
+  
+  <!-- Small branches off main future -->
+  <path d="M 100 50 Q 90 40 85 30" stroke="#7aa2f7" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <circle cx="85" cy="30" r="3" fill="#bb9af7" opacity="0.8"/>
+  
+  <path d="M 100 50 Q 110 40 115 30" stroke="#7aa2f7" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <circle cx="115" cy="30" r="3" fill="#bb9af7" opacity="0.8"/>
+  
+  <!-- Tiny sub-branches (possibilities) -->
+  <line x1="85" y1="30" x2="75" y2="25" stroke="#bb9af7" stroke-width="1" opacity="0.5"/>
+  <circle cx="75" cy="25" r="2" fill="#bb9af7" opacity="0.6"/>
+  
+  <line x1="115" y1="30" x2="125" y2="25" stroke="#bb9af7" stroke-width="1" opacity="0.5"/>
+  <circle cx="125" cy="25" r="2" fill="#bb9af7" opacity="0.6"/>
+  
+  <!-- Time rings around present -->
+  <circle cx="100" cy="100" r="18" fill="none" stroke="#7aa2f7" stroke-width="0.5" opacity="0.3"/>
+  <circle cx="100" cy="100" r="25" fill="none" stroke="#7aa2f7" stroke-width="0.3" opacity="0.2"/>
+  
+  <!-- Text -->
+  <text x="100" y="190" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#e8e6e1" letter-spacing="1">SPATIUM</text>
+  <text x="100" y="202" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#7aa2f7" letter-spacing="2">TEMPORIS</text>
+</svg>

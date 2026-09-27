@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="beamGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#7aa2f7" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#e8e6e1" stop-opacity="1"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main timeline beam -->
+  <line x1="50" y1="85" x2="50" y2="25" stroke="url(#beamGrad)" stroke-width="2.5" filter="url(#glow)"/>
+  
+  <!-- Past dots -->
+  <circle cx="50" cy="78" r="3" fill="#7aa2f7" opacity="0.4"/>
+  <circle cx="50" cy="65" r="3" fill="#7aa2f7" opacity="0.5"/>
+  
+  <!-- Present moment - bright node -->
+  <circle cx="50" cy="52" r="8" fill="#7aa2f7" filter="url(#glow)"/>
+  <circle cx="50" cy="52" r="4" fill="#e8e6e1"/>
+  <circle cx="50" cy="52" r="2" fill="#7aa2f7"/>
+  
+  <!-- Future branches diverging -->
+  <path d="M 50 42 Q 35 30 25 22" stroke="#bb9af7" stroke-width="1.5" fill="none" filter="url(#glow)"/>
+  <circle cx="25" cy="22" r="3" fill="#bb9af7"/>
+  
+  <path d="M 50 42 Q 65 30 75 22" stroke="#bb9af7" stroke-width="1.5" fill="none" filter="url(#glow)"/>
+  <circle cx="75" cy="22" r="3" fill="#bb9af7"/>
+  
+  <path d="M 50 35 L 50 15" stroke="#e8e6e1" stroke-width="2" filter="url(#glow)"/>
+  <circle cx="50" cy="15" r="4" fill="#e8e6e1" filter="url(#glow)"/>
+  <circle cx="50" cy="15" r="2" fill="#7aa2f7"/>
+  
+  <!-- Sub-branches -->
+  <line x1="50" y1="25" x2="42" y2="18" stroke="#bb9af7" stroke-width="1" opacity="0.6"/>
+  <circle cx="42" cy="18" r="2" fill="#bb9af7" opacity="0.7"/>
+  
+  <line x1="50" y1="25" x2="58" y2="18" stroke="#bb9af7" stroke-width="1" opacity="0.6"/>
+  <circle cx="58" cy="18" r="2" fill="#bb9af7" opacity="0.7"/>
+</svg>
