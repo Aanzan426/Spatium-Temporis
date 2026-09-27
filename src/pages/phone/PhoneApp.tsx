@@ -6,15 +6,14 @@
  * that requirement is the whole product — so capture is the default tab, the field is
  * focused on open, and there is nothing else on the screen to decide about.
  *
- * IT MUST NEVER ASK FOR A CATEGORY, TYPE, PROJECT OR DATE (§5.1). Every field added
- * here is a reason to stop using the app, and on a phone, with one thumb, at a bus
- * stop, that is truer than anywhere else.
+ * NOW WITH: Quick task creation with time picker for daily scheduling.
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { fmtDate, now } from '../../core/time'
+import { addDays, atMinutes, localMidnight, now, fmtTime, fmtDate, MINUTE_MS } from '../../core/time'
 import { useQuery, useStore } from '../../store/useStore'
 import { TodayPage } from './TodayPage'
+import type { Magnitude } from '../../core/types'
 
 type Tab = 'capture' | 'today' | 'inbox'
 
@@ -67,10 +66,11 @@ function Capture() {
 
   return (
     <div className="capture">
+      <p className="capture-label">Quick Capture</p>
       <textarea
         ref={inputRef}
         value={text}
-        placeholder="a thought…"
+        placeholder="a thought, idea, task…"
         rows={4}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -82,14 +82,126 @@ function Capture() {
           }
         }}
       />
-      <button className="primary big" onClick={capture} disabled={!text.trim()}>
-        Capture
-      </button>
+      <div className="capture-actions">
+        <button className="primary big" onClick={capture} disabled={!text.trim()}>
+          Capture
+        </button>
+      </div>
       {/*
         Confirmation matters more here than on the desktop: the field empties on save,
         and without a receipt an empty box is ambiguous between "saved" and "lost".
       */}
-      {justSaved && <p className="receipt">saved — {justSaved}</p>}
+      {justSaved && <p className="receipt">captured — {justSaved}</p>}
+
+      {/* Quick Task Creator */}
+      <QuickTaskCreator store={store} />
+    </div>
+  )
+}
+
+/**
+ * Quick task creation with time picker - lets you schedule tasks on the phone.
+ * This is the bridge between capture (no date) and scheduling (with time).
+ */
+function QuickTaskCreator({ store }: { store: ReturnType<typeof useStore> }) {
+  const [title, setTitle] = useState('')
+  const [hour, setHour] = useState('9')
+  const [minute, setMinute] = useState('0')
+  const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [justCreated, setJustCreated] = useState<string | null>(null)
+
+  const types = useQuery((s) => s.listNodeTypes())
+
+  const createTask = () => {
+    const titleText = title.trim()
+    if (!titleText) return
+
+    const h = parseInt(hour) || 9
+    const m = parseInt(minute) || 0
+    const startMs = atMinutes(now(), h * 60 + m) ?? localMidnight(now())
+    const endMs = startMs + 60 * MINUTE_MS // Default 1 hour duration
+
+    const node = store.createNode(
+      {
+        title: titleText,
+        type: selectedType || null,
+        magnitude: 'kilo',
+      },
+      {
+        start_ms: startMs,
+        start_precision: 'exact',
+        end_ms: endMs,
+        end_precision: 'exact',
+      }
+    )
+
+    setTitle('')
+    setHour('9')
+    setMinute('0')
+    setSelectedType(null)
+    setJustCreated(node.title)
+  }
+
+  if (types.length === 0 && !selectedType) {
+    return null // No types defined yet
+  }
+
+  return (
+    <div className="quick-add">
+      <p className="quick-add-title">Quick Task</p>
+
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Task title..."
+        className="time-input"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            createTask()
+          }
+        }}
+      />
+
+      <div className="time-picker-row">
+        <label>at</label>
+        <input
+          type="time"
+          value={`${hour}:${minute}`}
+          onChange={(e) => {
+            const [h, m] = e.target.value.split(':')
+            setHour(h)
+            setMinute(m ?? '0')
+          }}
+          className="time-input"
+        />
+      </div>
+
+      {types.length > 0 && (
+        <div className="type-selector">
+          {types.map((t) => (
+            <button
+              key={t.name}
+              className={`type-chip${selectedType === t.name ? ' selected' : ''}`}
+              onClick={() => setSelectedType(selectedType === t.name ? null : t.name)}
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <button
+        className="primary"
+        onClick={createTask}
+        disabled={!title.trim()}
+        style={{ marginTop: '8px' }}
+      >
+        Add Task
+      </button>
+
+      {justCreated && <p className="receipt">task added — {justCreated}</p>}
     </div>
   )
 }
