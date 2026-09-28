@@ -12,6 +12,15 @@
  * a store that gets rebuilt mid-session loses the event log. State initialisers are
  * guaranteed to run once.
  *
+ * THE BOOT DIAGNOSTIC
+ * -------------------
+ * `bootstrap.ts` hands back not just a store but *how it came up*. When the store is
+ * not durable — native SQLite failed and boot fell back to memory — that fact is shown
+ * in red on every screen until it is fixed. It used to go to the console only, which
+ * on a phone nobody is watching meant the app reported "the app deletes my data" for
+ * weeks before anyone could name the cause. A fallback the user cannot see is a
+ * fallback that gets filed as data loss.
+ *
  * SWAPPING IN SQLITE IS A THREE-LINE CHANGE HERE AND NOWHERE ELSE (§7):
  *
  *   import initSqlJs from 'sql.js'
@@ -41,9 +50,27 @@ export interface AppProps {
   alarms: AlarmBackend
   /** Chosen in `bootstrap.ts`. The only place platform is decided. */
   view: 'phone' | 'desktop'
+  /** How the store came up — from `boot()`. Shown verbatim while not durable. */
+  diagnostic: string
 }
 
-export function App({ store, alarms, view }: AppProps) {
+/** Is this diagnostic the "all good" one from `bootNative()`? Defined once, here. */
+const isPersisting = (diagnostic: string): boolean =>
+  diagnostic === 'persisting to on-device SQLite'
+
+/**
+ * Shown while the store is not durable. Deliberately plain text, full width, red:
+ * it must survive a glance and be unambiguous about what is and is not being saved.
+ */
+function BootStatus({ message }: { message: string }) {
+  return (
+    <div className="boot-status" role="alert">
+      {message}
+    </div>
+  )
+}
+
+export function App({ store, alarms, view, diagnostic }: AppProps) {
   const [page, setPage] = useState<Page>('main')
   const [alarmsAvailable, setAlarmsAvailable] = useState(false)
 
@@ -70,7 +97,8 @@ export function App({ store, alarms, view }: AppProps) {
   if (view === 'phone') {
     return (
       <StoreProvider value={store}>
-        <PhoneApp alarmsAvailable={alarmsAvailable} />
+        {!isPersisting(diagnostic) && <BootStatus message={diagnostic} />}
+        <PhoneApp alarmsAvailable={alarmsAvailable} diagnostic={diagnostic} />
       </StoreProvider>
     )
   }
@@ -97,7 +125,9 @@ export function App({ store, alarms, view }: AppProps) {
 
   return (
     <StoreProvider value={store}>
+      {!isPersisting(diagnostic) && <BootStatus message={diagnostic} />}
       <nav className="nav">
+        <img src="/logo-icon.svg" alt="" className="nav-logo" />
         <strong>Spatium Temporis</strong>
         <button className={page === 'main' ? 'on' : ''} onClick={() => setPage('main')}>
           Timeline

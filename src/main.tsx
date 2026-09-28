@@ -12,7 +12,7 @@ import './styles.css'
  * an app that holds an entire inner life is an alarming thing to show someone every
  * launch. The wait is a few milliseconds locally.
  */
-const { store, alarms, view, flush } = await boot()
+const { store, alarms, view, flush, diagnostic } = await boot()
 
 /**
  * Flush queued writes when the app goes to the background — on Android that is the
@@ -25,6 +25,6 @@ document.addEventListener('visibilitychange', () => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App store={store} alarms={alarms} view={view} />
+    <App store={store} alarms={alarms} view={view} diagnostic={diagnostic} />
   </StrictMode>,
 )

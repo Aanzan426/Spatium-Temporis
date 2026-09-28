@@ -6,7 +6,11 @@
  * that requirement is the whole product — so capture is the default tab, the field is
  * focused on open, and there is nothing else on the screen to decide about.
  *
- * NOW WITH: Quick task creation with time picker for daily scheduling.
+ * THE BOOT DIAGNOSTIC
+ * -------------------
+ * `bootstrap.ts` reports how the store came up. When it is durable, the tab bar shows
+ * a small "on device" tag — quiet reassurance, once, where the eye already is. When it
+ * is not, `App.tsx` shows the red banner instead; this file only renders the good case.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -17,8 +21,11 @@ import type { Magnitude } from '../../core/types'
 
 type Tab = 'capture' | 'today' | 'inbox'
 
-export function PhoneApp({ alarmsAvailable }: { alarmsAvailable: boolean }) {
+const PERSISTING = 'persisting to on-device SQLite'
+
+export function PhoneApp({ alarmsAvailable, diagnostic }: { alarmsAvailable: boolean; diagnostic: string }) {
   const [tab, setTab] = useState<Tab>('capture')
+  const durable = diagnostic === PERSISTING
 
   return (
     <div className="phone">
@@ -39,6 +46,11 @@ export function PhoneApp({ alarmsAvailable }: { alarmsAvailable: boolean }) {
         <button className={tab === 'inbox' ? 'on' : ''} onClick={() => setTab('inbox')}>
           Inbox
         </button>
+        {durable && (
+          <span className="durable-tag" title="data is stored in on-device SQLite">
+            ● on device
+          </span>
+        )}
       </nav>
     </div>
   )
@@ -66,6 +78,14 @@ function Capture() {
 
   return (
     <div className="capture">
+      <header className="phone-brand">
+        <img src="/logo-icon.svg" alt="" className="brand-mark" />
+        <div>
+          <h1>Spatium Temporis</h1>
+          <p>your time, mapped</p>
+        </div>
+      </header>
+
       <p className="capture-label">Quick Capture</p>
       <textarea
         ref={inputRef}
