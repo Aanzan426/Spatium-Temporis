@@ -12,11 +12,23 @@
  *   2. Which alarm backend — Capacitor notifications, or the no-op.
  *   3. Which view — the phone's three tabs, or the desktop's two pages.
  *
- * The plugins are loaded with dynamic `import()` behind a runtime check, so the web
- * bundle never contains them and a browser build does not need Capacitor installed at
- * all. That is also why this is async and `main.tsx` awaits it.
+ * WHY THE PLUGIN IMPORTS ARE STATIC
+ * ---------------------------------
+ * They used to be dynamic `import()`s behind a runtime check, "so the web bundle never
+ * contains them". That reasoning broke the APK: a dynamic import of a bare specifier
+ * (`import('@capacitor-community/sqlite')`) survives Vite's bundling untouched, and a
+ * WebView has no node_modules to resolve it against. On the phone the import rejected
+ * every single launch, the catch silently fell back to the MemoryStore, and the user's
+ * data lived only in RAM — which is exactly the "clearing the cache wipes my data"
+ * report that started this. Both packages are in `dependencies` now, so a web build
+ * resolves and bundles them statically like any other module: they are registerPlugin
+ * stubs there, harmless and never called because `isNative()` is false.
+ *
+ * That is also why this is async and `main.tsx` awaits it.
  */
 
+import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite'
+import { LocalNotifications } from '@capacitor/local-notifications'
 import { capacitorAlarms } from './alarms/capacitor-alarms'
 import type { AlarmBackend } from './alarms/alarms'
 import { noopAlarms } from './alarms/alarms'
@@ -25,8 +37,6 @@ import { MemoryStore } from './store/memory/MemoryStore'
 import { seed } from './store/memory/seed'
 import { SqliteStore } from './store/sqlite/SqliteStore'
 import { capacitorAdapter, preload } from './store/sqlite/adapters/capacitor'
-import type { CapacitorSQLiteConnection } from './store/sqlite/adapters/capacitor'
-import type { LocalNotificationsPlugin } from './alarms/capacitor-alarms'
 import migration from './store/sqlite/migrations/001_init.sql?raw'
 import type { Store } from './store/Store'
 
@@ -36,6 +46,12 @@ export interface Boot {
   view: 'phone' | 'desktop'
   /** Awaited before snapshots and on background, where the backend queues writes. */
   flush: () => Promise<void>
+  /**
+   * How persistence came up, shown verbatim by the phone shell while the store is not
+   * durable (BootStatus in `App.tsx`). A fallback the user cannot see is a fallback
+   * that gets reported as "the app deletes my data" instead of "the app is broken".
+   */
+  diagnostic: string
 }
 
 export const isNative = (): boolean => 'Capacitor' in globalThis
@@ -49,14 +65,21 @@ export async function boot(): Promise<Boot> {
     } catch (err) {
       /**
        * A native boot that fails must not leave a blank screen. It falls back to memory
-       * and says so loudly — but it does NOT silently pretend to persist, because a
-       * user who believes their outcomes are being kept and is wrong is worse off than
-       * one who knows the app is broken.
+       * and says so loudly — on screen, not only the console. It does NOT silently
+       * pretend to persist: a user who believes their outcomes are being kept and is
+       * wrong is worse off than one who knows the app is broken.
        */
+      const message = err instanceof Error ? err.message : String(err)
       console.error('native boot failed, falling back to memory:', err)
       const store = new MemoryStore()
       seed(store)
-      return { store, alarms: noopAlarms, view: 'phone', flush: async () => undefined }
+      return {
+        store,
+        alarms: noopAlarms,
+        view: 'phone',
+        flush: async () => undefined,
+        diagnostic: `NOT PERSISTING — native SQLite failed to load: ${message}`,
+      }
     }
   }
 
@@ -73,41 +96,12 @@ export async function boot(): Promise<Boot> {
     alarms: noopAlarms,
     view: kind === 'phone' ? 'phone' : 'desktop',
     flush: async () => undefined,
+    diagnostic: 'web preview — memory-backed, not persisted yet (§7)',
   }
 }
 
 async function bootNative(): Promise<Boot> {
-  // Specifier in a variable so Vite leaves it alone in the web build, where these
-  // packages are not installed and a static import would fail the build outright.
-  const sqlitePkg = '@capacitor-community/sqlite'
-  const notificationsPkg = '@capacitor/local-notifications'
-
-  /**
-   * Typed against local structural interfaces, not the packages' own types.
-   *
-   * The packages are Android-only dependencies and are not installed for a web build,
-   * so `typeof import('@capacitor-community/sqlite')` would fail the typecheck on any
-   * machine that has not run the Android setup. The shapes below describe only what is
-   * used here, which is also the complete list of what has to stay true if the plugin
-   * changes.
-   */
-  const sqlite = (await import(/* @vite-ignore */ sqlitePkg)) as unknown as {
-    CapacitorSQLite: unknown
-    SQLiteConnection: new (plugin: unknown) => {
-      createConnection(
-        database: string,
-        encrypted: boolean,
-        mode: string,
-        version: number,
-        readonly: boolean,
-      ): Promise<CapacitorSQLiteConnection & { open(): Promise<void>; execute(sql: string, tx?: boolean): Promise<unknown> }>
-    }
-  }
-  const notifications = (await import(/* @vite-ignore */ notificationsPkg)) as unknown as {
-    LocalNotifications: LocalNotificationsPlugin
-  }
-
-  const connection = new sqlite.SQLiteConnection(sqlite.CapacitorSQLite)
+  const connection = new SQLiteConnection(CapacitorSQLite)
   const db = await connection.createConnection('spatium', false, 'no-encryption', 1, false)
   await db.open()
 
@@ -126,8 +120,9 @@ async function bootNative(): Promise<Boot> {
 
   return {
     store,
-    alarms: capacitorAlarms(notifications.LocalNotifications),
+    alarms: capacitorAlarms(LocalNotifications),
     view: 'phone',
     flush: () => adapter.flush(),
+    diagnostic: 'persisting to on-device SQLite',
   }
 }

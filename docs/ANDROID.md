@@ -33,10 +33,9 @@ Needs JDK 21 and the Android SDK (platform 34+, build-tools).
 
 `npm run android` does the build-then-sync-then-assemble sequence in one command.
 
-## Two manifest entries that are not optional
+## Two manifest entries that used to be hand-added
 
-`npx cap add android` generates `android/app/src/main/AndroidManifest.xml`. Two
-permissions have to be added to it, and the app is much worse without them:
+The app needs two permissions, and the app is much worse without them:
 
 ```xml
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -53,13 +52,33 @@ whatever maintenance window it feels like, which on a phone left alone can be ho
 prompt that arrives ninety minutes late is asking you to reconstruct, which is the thing
 it exists to prevent.
 
+Since the plugins moved to v8 (`@capacitor/local-notifications@^8.3.1`), **both lines
+merge in automatically** from the plugin's own Android manifest during `cap sync` —
+check `node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml`.
+They only need hand-adding if that plugin is ever removed while `alarms.ts` survives.
+
 If exact alarms are refused, the app still works — it records `answered_at` alongside
 every outcome, so a late answer is visibly a late answer rather than being quietly
 treated as prompt.
 
 The manifest lives in generated `android/`, which is gitignored by default. Either commit
-`android/` once it exists, or keep these two lines in a patch applied after `cap add`.
-Committing it is simpler and is what the CI assumes.
+`android/` once it exists, or keep the permission lines in a patch applied after
+`cap add`. Committing it is simpler and is what the CI assumes.
+
+## Icons
+
+The launcher icon is not the favicon. Android reads `ic_launcher.png` out of the
+`mipmap-<density>` folders, and until those exist the APK ships Capacitor's stock robot
+— which is why the logo was "not visible on the APK" after the SVGs landed in `public/`.
+
+```bash
+npm run icons   # after `npx cap add android`; CI runs it too
+```
+
+`tools/android-icons.ts` rasterizes `public/logo-icon.svg` (via `@resvg/resvg-js`) into
+the launcher set (adaptive foreground + legacy round/square on the palette's dark
+tile), the `ic_stat_spatium` notification silhouette `capacitor.config.ts` names, and a
+splash. Generated files are never hand-edited (§11): change the SVG, re-run, commit.
 
 ## What lives where on the device
 

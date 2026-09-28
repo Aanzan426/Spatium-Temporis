@@ -69,7 +69,7 @@ npm run dev        # desktop view in a browser
 | xlsx export, JSON snapshot, zip writer | Built, round-trip asserted |
 | xlsx → jsonl converter | Built, all five SPEC §4 steps |
 | Two-device merge | Built, asserted |
-| Capacitor wrapper + CI for the APK | Written, **never built into an APK** |
+| Capacitor wrapper + CI for the APK | Building; installed on a phone. The persistence root cause (dynamic plugin import → `MemoryStore` fallback) was fixed on 2026-09-27 — **awaiting on-device re-verification** |
 | PWA | **Not built.** §7 claims it exists. It does not |
 | sql.js on the web path | **Not wired.** The desktop is still memory-backed |
 
@@ -201,6 +201,20 @@ memo.
 into whatever window the OS feels like — and a prompt ninety minutes late is asking for
 reconstruction, which is the thing the alarm exists to prevent.
 
+**Android: a dynamic `import()` of a bare specifier cannot resolve in the WebView.**
+`import('@capacitor-community/sqlite')` survives Vite's bundling untouched — Vite leaves
+it alone precisely because it is dynamic — and a WebView has no `node_modules` and no
+import map to resolve it against. It rejected on every device launch, the catch fell
+back to the `MemoryStore`, and the app "lost all data" for a week before anyone could
+name the cause. The plugins are static imports now (see `bootstrap.ts`'s header): the
+web bundle carries their `registerPlugin` stubs, which is harmless. And the failure mode
+is visible now — the phone shows a red boot banner whenever the store is not durable.
+
+**Android: clearing the app's *cache* never deletes the database.** App-private SQLite
+survives cache clears, recents-swipes and reboots; only uninstall or "clear storage"
+removes it. If clearing the cache seems to wipe your data, the app was never writing to
+the database — that asymmetry is the fastest diagnosis there is.
+
 **Never restore one device's snapshot over the other's database.** It looks safe because
 snapshots hold the full history. It is not: the desktop is where spans, links and
 revisions are made, they exist nowhere else, and a restore deletes them on every sync.
@@ -217,8 +231,9 @@ In order, and the first one is not code:
    of minutes means the mechanism works; hours means the notification is being dismissed
    and the data is reconstruction wearing a timestamp. That is worth knowing before
    anything is built on top of it.
-2. **Commit `android/`** after `npx cap add android`, with the two hand-added manifest
-   permissions.
+2. **Commit `android/`** after `npx cap add android` (run `npm run icons` first so the
+   launcher PNGs are in it). The two alarm permissions now merge in from the v8
+   notification plugin's own manifest — see `docs/ANDROID.md`.
 3. **sql.js on the web path** — three lines in `bootstrap.ts`, so the desktop stops being
    memory-backed.
 4. **The PWA** — manifest and service worker. §7 has claimed this since day one.

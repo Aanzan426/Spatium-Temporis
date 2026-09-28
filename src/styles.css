@@ -531,6 +531,60 @@ button.link:disabled { opacity: 0.4; cursor: default; text-decoration: none; }
 }
 .phone-tabs button.on { color: var(--ink); box-shadow: inset 0 2px 0 var(--focus); }
 
+/*
+ * The boot diagnostic, from `bootstrap.ts` via `App.tsx`. Red banner when the store is
+ * NOT durable — the whole point is that a silent fallback gets reported as data loss
+ * instead of a broken boot. A fallback the user cannot see is a fallback that lies.
+ */
+.boot-status {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #ffd6d6;
+  background: #7f1d1d;
+  border-bottom: 1px solid #b91c1c;
+  word-break: break-word;
+}
+
+/* Quiet reassurance in the tab bar when the store IS durable. */
+.durable-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+/* Desktop nav brand mark. */
+.nav-logo { width: 20px; height: 20px; }
+
+/* Capture-tab brand header: the mark the launcher icon is made from. */
+.phone-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+.phone-brand .brand-mark { width: 40px; height: 40px; }
+.phone-brand h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.phone-brand p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
 /* --- capture: the whole product, on one screen --- */
 
 .capture { 
